@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess the Number</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            color: #444;
+            animation: gradientBG 15s ease infinite;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(to right, #ff6b6b, #556270);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, #ff6b6b, #556270);
+            border-radius: 2px;
+        }
+
+        input {
+            padding: 14px;
+            font-size: 18px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            width: 120px;
+            margin: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        input:focus {
+            border-color: #23a6d5;
+            outline: none;
+            box-shadow: 0 4px 20px rgba(35, 166, 213, 0.25);
+            transform: translateY(-2px);
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 18px;
+            background: linear-gradient(135deg, #23a6d5, #23d5ab);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(35, 166, 213, 0.3);
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: 0.5s;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(35, 166, 213, 0.4);
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        #reset {
+            background: linear-gradient(135deg, #ff6b6b, #e73c7e);
+            box-shadow: 0 4px 10px rgba(231, 60, 126, 0.3);
+        }
+
+        #reset:hover {
+            box-shadow: 0 7px 15px rgba(231, 60, 126, 0.4);
+        }
+
+        #message {
+            font-size: 22px;
+            margin: 25px 0;
+            min-height: 60px;
+            font-weight: 600;
+            padding: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .stats {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed #ddd;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        .stats p {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 10px 15px;
+        }
+
+        .stats span {
+            font-size: 20px;
+            color: #23a6d5;
+            font-weight: bold;
+        }
+
+        /* Confetti styles */
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f44336;
+            border-radius: 0;
+            opacity: 0.7;
+        }
+
+        /* Success popup */
+        .success-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .success-popup.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .popup-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 80%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .popup-content h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #23a6d5;
+        }
+
+        .popup-content p {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .popup-content button {
+            margin-top: 20px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .info-item {
+            font-size: 18px;
+            margin: 5px;
+            padding: 10px;
+            background: rgba(35, 166, 213, 0.1);
+            border-radius: 10px;
+            display: inline-block;
+            min-width: 120px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, #23d5ab, #23a6d5);
+            width: 100%;
+            transition: width 0.3s ease;
+        }
+
+        /* Game over popup */
+        .game-over-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .game-over-popup.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .game-over-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 80%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-over-content h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #e73c7e;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Guess the Number!</h1>
+        <p>I'm thinking of a number between <span id="min">1</span> and <span id="max">100</span>.</p>
+        
+        <div class="game-info">
+            <div class="info-item">Attempts: <span id="attempts">0</span>/<span id="max-attempts">10</span></div>
+            <div class="info-item">Points: <span id="points">100</span></div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress" id="attempt-progress"></div>
+        </div>
+        
+        <div>
+            <input type="number" id="guess" min="1" max="100" placeholder="Your guess">
+            <button id="check" class="animate__animated">Check!</button>
+        </div>
+        <div id="message">Start guessing!</div>
+        <button id="reset">New Game</button>
+        
+        <div class="stats">
+            <p>Best Score: <span id="best-score">-</span></p>
+            <p>Games Played: <span id="games-played">0</span></p>
+            <p>Current Session: <span id="current-session">1</span></p>
+        </div>
+    </div>
+
+    <div class="success-popup" id="success-popup">
+        <div class="popup-content animate__animated animate__zoomIn">
+            <h2>Congratulations!</h2>
+            <p>You guessed the number <span id="correct-number"></span>!</p>
+            <p>Attempts: <span id="total-attempts"></span>/10</p>
+            <p>Points Earned: <span id="earned-points"></span></p>
+            <button id="continue-btn">Continue Playing</button>
+            <button id="new-session-btn">Start New Session</button>
+        </div>
+    </div>
+
+    <div class="game-over-popup" id="game-over-popup">
+        <div class="game-over-content animate__animated animate__zoomIn">
+            <h2>Game Over!</h2>
+            <p>You've used all 10 attempts.</p>
+            <p>The number was: <span id="missed-number"></span></p>
+            <p>Better luck next time!</p>
+            <button id="try-again-btn">Try Again</button>
+            <button id="new-session-btn2">Start New Session</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const guessInput = document.getElementById('guess');
+            const checkButton = document.getElementById('check');
+            const resetButton = document.getElementById('reset');
+            const messageDiv = document.getElementById('message');
+            const attemptsSpan = document.getElementById('attempts');
+            const maxAttemptsSpan = document.getElementById('max-attempts');
+            const pointsSpan = document.getElementById('points');
+            const minSpan = document.getElementById('min');
+            const maxSpan = document.getElementById('max');
+            const bestScoreSpan = document.getElementById('best-score');
+            const gamesPlayedSpan = document.getElementById('games-played');
+            const currentSessionSpan = document.getElementById('current-session');
+            const successPopup = document.getElementById('success-popup');
+            const gameOverPopup = document.getElementById('game-over-popup');
+            const correctNumberSpan = document.getElementById('correct-number');
+            const missedNumberSpan = document.getElementById('missed-number');
+            const totalAttemptsSpan = document.getElementById('total-attempts');
+            const earnedPointsSpan = document.getElementById('earned-points');
+            const continueBtn = document.getElementById('continue-btn');
+            const tryAgainBtn = document.getElementById('try-again-btn');
+            const newSessionBtn = document.getElementById('new-session-btn');
+            const newSessionBtn2 = document.getElementById('new-session-btn2');
+            const attemptProgress = document.getElementById('attempt-progress');
+
+            let minNumber = 1;
+            let maxNumber = 100;
+            let secretNumber;
+            let attempts;
+            let maxAttempts = 10;
+            let points;
+            let gameOver;
+            let bestScore = localStorage.getItem('bestScore') || '-';
+            let gamesPlayed = localStorage.getItem('gamesPlayed') || 0;
+            let currentSession = 1;
+            
+            bestScoreSpan.textContent = bestScore;
+            gamesPlayedSpan.textContent = gamesPlayed;
+            currentSessionSpan.textContent = currentSession;
+
+            function initGame() {
+                secretNumber = Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
+                attempts = 0;
+                points = 100;
+                gameOver = false;
+                
+                minSpan.textContent = minNumber;
+                maxSpan.textContent = maxNumber;
+                attemptsSpan.textContent = attempts;
+                maxAttemptsSpan.textContent = maxAttempts;
+                pointsSpan.textContent = points;
+                messageDiv.textContent = 'Start guessing!';
+                messageDiv.style.color = '#333';
+                messageDiv.className = '';
+                
+                guessInput.value = '';
+                guessInput.focus();
+                guessInput.max = maxNumber;
+                guessInput.min = minNumber;
+                
+                checkButton.className = 'animate__animated';
+                updateProgressBar();
+            }
+
+            function updateProgressBar() {
+                const progressPercentage = (attempts / maxAttempts) * 100;
+                attemptProgress.style.width = (100 - progressPercentage) + '%';
+            }
+
+            function startNewSession() {
+                currentSession++;
+                currentSessionSpan.textContent = currentSession;
+                bestScore = '-';
+                gamesPlayed = 0;
+                
+                localStorage.removeItem('bestScore');
+                localStorage.removeItem('gamesPlayed');
+                
+                bestScoreSpan.textContent = bestScore;
+                gamesPlayedSpan.textContent = gamesPlayed;
+                
+                initGame();
+            }
+
+            function createConfetti() {
+                const confettiCount = 200;
+                const colors = ['#ff6b6b', '#23a6d5', '#23d5ab', '#e73c7e', '#ffce54', '#fc913a'];
+                
+                for (let i = 0; i < confettiCount; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.top = -10 + 'px';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.width = (Math.random() * 10 + 5) + 'px';
+                    confetti.style.height = (Math.random() * 10 + 5) + 'px';
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    
+                    // Randomize shape
+                    if (Math.random() > 0.5) {
+                        confetti.style.borderRadius = '50%';
+                    }
+                    
+                    document.body.appendChild(confetti);
+                    
+                    // Animate falling
+                    const animation = confetti.animate([
+                        { transform: `translateY(0) rotate(0deg)`, opacity: 1 },
+                        { transform: `translateY(${window.innerHeight}px) rotate(${Math.random() * 720}deg)`, opacity: 0 }
+                    ], {
+                        duration: Math.random() * 3000 + 2000,
+                        easing: 'cubic-bezier(.37,.74,.72,.87)'
+                    });
+                    
+                    animation.onfinish = () => {
+                        confetti.remove();
+                    };
+                }
+            }
+
+            function celebrateSuccess() {
+                createConfetti();
+                checkButton.className = 'animate__animated animate__pulse';
+                messageDiv.className = 'animate__animated animate__rubberBand';
+                
+                correctNumberSpan.textContent = secretNumber;
+                totalAttemptsSpan.textContent = attempts;
+                earnedPointsSpan.textContent = points;
+                
+                setTimeout(() => {
+                    successPopup.classList.add('active');
+                }, 1000);
+            }
+
+            function showGameOver() {
+                missedNumberSpan.textContent = secretNumber;
+                gameOverPopup.classList.add('active');
+            }
+
+            function checkGuess() {
+                if (gameOver) return;
+
+                const userGuess = parseInt(guessInput.value);
+                if (isNaN(userGuess) || userGuess < minNumber || userGuess > maxNumber) {
+                    messageDiv.textContent = `Please enter a valid number between ${minNumber} and ${maxNumber}.`;
+                    messageDiv.style.color = 'red';
+                    messageDiv.className = 'animate__animated animate__shakeX';
+                    return;
+                }
+
+                attempts++;
+                attemptsSpan.textContent = attempts;
+                updateProgressBar();
+                
+                // Decrease points with each attempt (10 points per attempt)
+                points = Math.max(0, 100 - (attempts - 1) * 10);
+                pointsSpan.textContent = points;
+
+                if (userGuess === secretNumber) {
+                    messageDiv.textContent = `Congratulations! You guessed the number in ${attempts} attempts!`;
+                    messageDiv.style.color = 'green';
+                    gameOver = true;
+
+                    if (bestScore === '-' || points > bestScore) {
+                        bestScore = points;
+                        localStorage.setItem('bestScore', bestScore);
+                        bestScoreSpan.textContent = bestScore;
+                    }
+                    
+                    gamesPlayed++;
+                    localStorage.setItem('gamesPlayed', gamesPlayed);
+                    gamesPlayedSpan.textContent = gamesPlayed;
+                    
+                    celebrateSuccess();
+                    
+                } else if (attempts >= maxAttempts) {
+                    messageDiv.textContent = `Game over! The number was ${secretNumber}.`;
+                    messageDiv.style.color = 'red';
+                    gameOver = true;
+                    
+                    gamesPlayed++;
+                    localStorage.setItem('gamesPlayed', gamesPlayed);
+                    gamesPlayedSpan.textContent = gamesPlayed;
+                    
+                    showGameOver();
+                    
+                } else if (userGuess < secretNumber) {
+                    messageDiv.textContent = 'Too low! Try a higher number.';
+                    messageDiv.style.color = '#3498db';
+                    messageDiv.className = 'animate__animated animate__fadeIn';
+                } else {
+                    messageDiv.textContent = 'Too high! Try a lower number.';
+                    messageDiv.style.color = '#e67e22';
+                    messageDiv.className = 'animate__animated animate__fadeIn';
+                }
+
+                guessInput.value = '';
+                guessInput.focus();
+            }
+
+            checkButton.addEventListener('click', checkGuess);
+            
+            guessInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkGuess();
+                }
+            });
+
+            resetButton.addEventListener('click', function() {
+                successPopup.classList.remove('active');
+                gameOverPopup.classList.remove('active');
+                initGame();
+            });
+            
+            continueBtn.addEventListener('click', function() {
+                successPopup.classList.remove('active');
+                initGame();
+            });
+            
+            tryAgainBtn.addEventListener('click', function() {
+                gameOverPopup.classList.remove('active');
+                initGame();
+            });
+            
+            newSessionBtn.addEventListener('click', function() {
+                successPopup.classList.remove('active');
+                startNewSession();
+            });
+            
+            newSessionBtn2.addEventListener('click', function() {
+                gameOverPopup.classList.remove('active');
+                startNewSession();
+            });
+
+            initGame();
+        });
+    </script>
+</body>
+</html>
